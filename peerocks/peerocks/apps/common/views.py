@@ -35,7 +35,14 @@ class Task1View(View):
             'response': users_recipes_dict,
         }
 
-        return render(request, 'task.html', {'json_data': json.dumps(data)})
+        result = json.dumps(
+            data,
+            sort_keys=False,
+            indent=4,
+            ensure_ascii=False,
+            separators=(',', ': ')
+        )
+        return render(request, 'task.html', {'json_data': result})
 
 
 class Task2View(View):
