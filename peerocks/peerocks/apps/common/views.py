@@ -7,6 +7,9 @@ from django.views import (
     View,
 )
 
+from recipes.models import Recipe, UserRecipe
+from users.models import CustomUser
+
 
 class Task1View(View):
     """
@@ -14,8 +17,22 @@ class Task1View(View):
     """
 
     def get(self, request, **kwargs):
+        users_recipes_queryset = UserRecipe.objects.all()
+
+        users_recipes_dict: dict = {}
+        row_number_generator = (number for number in range(0, users_recipes_queryset.count()))
+
+        for user_recipe_queryset in users_recipes_queryset:
+            user_recipe_dict = {
+                "user": str(user_recipe_queryset.user),
+                "recipe": user_recipe_queryset.recipe.title,
+                "description": user_recipe_queryset.recipe.description
+            }
+            row_number = str(next(row_number_generator))
+            users_recipes_dict[row_number] = user_recipe_dict
+
         data = {
-            'response': 'some data task 1',
+            'response': users_recipes_dict,
         }
 
         return render(request, 'task.html', {'json_data': json.dumps(data)})
