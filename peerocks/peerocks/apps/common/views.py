@@ -1,5 +1,6 @@
 import json
 
+from django.db.models import Count, F
 from django.shortcuts import (
     render,
 )
@@ -7,8 +8,7 @@ from django.views import (
     View,
 )
 
-from recipes.models import Recipe, UserRecipe, CookStep, CookStepRecipeProduct, RecipeProduct
-from users.models import CustomUser
+from recipes.models import Recipe, UserRecipe, CookStep, RecipeProduct
 
 
 def packing(dict_for_packing: dict) -> str:
@@ -86,11 +86,27 @@ class Task3View(View):
     """
 
     def get(self, request, **kwargs):
-        data = {
-            'response': 'some data task 3',
-        }
+        users_recipes_with_likes_queryset = Recipe.objects \
+            .annotate(likes=Count('vote', filter=F('vote__is_like'))) \
+            .values('title', 'description', username=F('userrecipe__user'), likes=F('likes')) \
+            .order_by('-likes')
 
-        return render(request, 'task.html', {'json_data': json.dumps(data)})
+        row_number_generator = (number for number in range(0, users_recipes_with_likes_queryset.count()))
+        users_recipes_with_likes_list = list(users_recipes_with_likes_queryset)
+        result: dict = {}
+
+        for user_recipe_with_likes in users_recipes_with_likes_list:
+            user_recipe_dict = {
+                "recipe": user_recipe_with_likes['username'],
+                "description": user_recipe_with_likes['description'],
+                "username": user_recipe_with_likes['username'],
+                "likes": user_recipe_with_likes['likes'],
+            }
+            row_number = str(next(row_number_generator))
+            result[row_number] = user_recipe_dict
+
+        result = packing(result)
+        return render(request, 'task.html', {'json_data': result})
 
 
 class Task4View(View):
