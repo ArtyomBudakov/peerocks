@@ -11,6 +11,20 @@ from recipes.models import Recipe, UserRecipe, CookStep, CookStepRecipeProduct, 
 from users.models import CustomUser
 
 
+def packing(dict_for_packing: dict) -> str:
+    """
+    Из Dict с кириллицей формирует Json в формате str для вывода на сайт
+    """
+    packed_dict = json.dumps(
+        {'response': dict_for_packing},
+        sort_keys=False,
+        indent=4,
+        ensure_ascii=False,
+        separators=(',', ': ')
+    )
+    return packed_dict
+
+
 class Task1View(View):
     """
     Вывести список всех рецептов. Список должен содержать информацию о самом рецепте, авторе
@@ -31,17 +45,7 @@ class Task1View(View):
             row_number = str(next(row_number_generator))
             users_recipes_dict[row_number] = user_recipe_dict
 
-        data = {
-            'response': users_recipes_dict,
-        }
-
-        result = json.dumps(
-            data,
-            sort_keys=False,
-            indent=4,
-            ensure_ascii=False,
-            separators=(',', ': ')
-        )
+        result = packing(users_recipes_dict)
         return render(request, 'task.html', {'json_data': result})
 
 
@@ -71,18 +75,7 @@ class Task2View(View):
         for item in cook_steps:
             recipe_products_steps[some_recipe.title]["шаги"].update({item['title']: item['description']})
 
-        data = {
-            'response': recipe_products_steps,
-        }
-
-        result = json.dumps(
-            data,
-            sort_keys=False,
-            indent=4,
-            ensure_ascii=False,
-            separators=(',', ': ')
-        )
-
+        result = packing(recipe_products_steps)
         return render(request, 'task.html', {'json_data': result})
 
 
