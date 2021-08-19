@@ -7,7 +7,7 @@ from django.views import (
     View,
 )
 
-from recipes.models import Recipe, UserRecipe
+from recipes.models import Recipe, UserRecipe, CookStep, CookStepRecipeProduct, RecipeProduct
 from users.models import CustomUser
 
 
@@ -47,16 +47,43 @@ class Task1View(View):
 
 class Task2View(View):
     """
-    Вывести детальную информацию рецепта. Нужно получить информацию о самом рецепте, о шагах приготовления, списке
-    необходимых продоктов для приготовления
+    Вывести детальную информацию рецепта. Нужно получить информацию о самом рецепте,
+    о шагах приготовления, списке необходимых продуктов для приготовления
     """
 
     def get(self, request, **kwargs):
+        recipe_products_steps: dict = {}
+
+        some_recipe = Recipe.objects.first()
+        recipe_products_steps[some_recipe.title] = {"описание": some_recipe.description}
+
+        recipe_products = RecipeProduct.objects.filter(recipe=some_recipe)
+        recipe_products_steps[some_recipe.title]["продукты"] = []
+        for item in recipe_products:
+            recipe_products_steps[some_recipe.title]["продукты"].append(item.product.title)
+
+        cook_steps = CookStep.objects.\
+            filter(recipe=some_recipe).\
+            values('title', 'description').\
+            distinct()
+        recipe_products_steps[some_recipe.title]["шаги"] = {}
+
+        for item in cook_steps:
+            recipe_products_steps[some_recipe.title]["шаги"].update({item['title']: item['description']})
+
         data = {
-            'response': 'some data task 2',
+            'response': recipe_products_steps,
         }
 
-        return render(request, 'task.html', {'json_data': json.dumps(data)})
+        result = json.dumps(
+            data,
+            sort_keys=False,
+            indent=4,
+            ensure_ascii=False,
+            separators=(',', ': ')
+        )
+
+        return render(request, 'task.html', {'json_data': result})
 
 
 class Task3View(View):
