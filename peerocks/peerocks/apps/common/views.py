@@ -1,6 +1,8 @@
 import json
 
-from django.db.models import Count, F
+from django.db.models import (
+    Count, F, ExpressionWrapper, IntegerField
+)
 from django.shortcuts import (
     render,
 )
@@ -8,7 +10,9 @@ from django.views import (
     View,
 )
 
-from recipes.models import Recipe, UserRecipe, CookStep, RecipeProduct
+from recipes.models import (
+    Recipe, UserRecipe, CookStep, RecipeProduct
+)
 
 
 def packing(dict_for_packing: dict) -> str:
@@ -130,11 +134,25 @@ class Task5View(View):
     """
 
     def get(self, request, **kwargs):
-        data = {
-            'response': 'some data task 5',
-        }
 
-        return render(request, 'task.html', {'json_data': json.dumps(data)})
+        dishes = 5
 
+        some_recipe = Recipe.objects.first()
+
+        products_queryset = RecipeProduct.objects.filter(recipe=some_recipe)\
+            .annotate(number_of_units=ExpressionWrapper(dishes * F('count'), output_field=IntegerField()))\
+            .values(
+                name_of_product=F('product__title'),
+                name_of_unit=F('unit__title'),
+                number_of_units=F('number_of_units')
+            )
+        products_list = list(products_queryset)  # todo нужно преобразовать этот массив в формат словаря -
+        # todo {"молоко":{"единица измерения": "грамм", "количество единиц": 5}}
+        # todo и потом добавить этот словарь как value для "продукты", чтобы приняло вид
+        # todo "продукты": {"молоко":{...}}
+
+        result_dict = {some_recipe.title: some_recipe.description, 'продукты': products_list}
+        result_str = packing(result_dict)
+        return render(request, 'task.html', {'json_data': result_str})
 
 
