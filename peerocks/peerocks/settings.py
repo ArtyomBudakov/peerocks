@@ -63,6 +63,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+
+    'peerocks.middleware.MyMiddleware'
 ]
 
 ROOT_URLCONF = 'peerocks.urls'
