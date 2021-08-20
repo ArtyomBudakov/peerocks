@@ -62,18 +62,19 @@ class FakeUser:
 # Помните про __call__()
 class MyMiddleware(MiddlewareMixin):
     """
-    Написать собственный middleware, который бы сохранял в объекте request атрибут
-    runtime содержащий время исполнения запроса
+    Написать собственный middleware, который бы сохранял в объекте
+    request атрибут runtime содержащий время исполнения запроса
     """
 
     # def __call__(self, request, *args, **kwargs):
-    #     return self.get_response
+    #     return self.get_response(request)
 
     def process_request(self, request):
-        print("We are REQ")
+        print("We are in REQ")
+        # print(request.runtime)
         return self.get_response(request)
 
     def process_response(self, request, response):
 
-        print("We are RES")
+        print("We are in RES")
         return self.get_response(request)
