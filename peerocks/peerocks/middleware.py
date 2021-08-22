@@ -55,7 +55,8 @@ class FakeUser:
       после чего передать значение user.auth в request.auth.
     """
     # определите у пользователя аттрибуты auth
-    pass
+    def __init__(self, authorization_token=False):
+        self.authorization_token: bool = authorization_token
 
 
 # Необходимо изменить поведение указанных методов.
@@ -77,12 +78,19 @@ class MyMiddleware(MiddlewareMixin):
         #  просто использовать datetime вместо float
         timestamp_after_middleware_handler = time()
         request.runtime = timestamp_after_middleware_handler - timestamp_before_middleware_handler
-        print(f"request runtime: {request.runtime}")
         return response
 
     def process_request(self, request):
+        fake_user_instance = FakeUser()
+
+        if request.authorization_token == "VALID_TOKEN":
+            fake_user_instance.authorization_token = True
+        else:
+            fake_user_instance.authorization_token = False
+
+        request.authorization_token = fake_user_instance.authorization_token
+        request.auth = fake_user_instance.authorization_token
         return self.get_response(request)
 
     def process_response(self, request, response):
-        print("We are in RES")
         return response
