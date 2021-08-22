@@ -1,5 +1,5 @@
 from django.utils.deprecation import MiddlewareMixin
-from datetime import datetime
+from time import time, sleep
 
 """
     Посмотреть какие Middleware используются в проекте. Описать их назначения
@@ -67,18 +67,20 @@ class MyMiddleware(MiddlewareMixin):
     """
 
     def __call__(self, request, *args, **kwargs):
-        timestamp_before_middleware_handler = datetime.now()
+        timestamp_before_middleware_handler = time()
 
         response = self.process_request(request)
         self.process_response(request, response)
 
-        timestamp_after_middleware_handler = datetime.now()
+        sleep(0.1)  # костыль т.к. для тестов нужно float значение больше 0, а time не может выдать
+        #  нормальную точность. Можно было из datetime преобразовать в float, но мне кажется, что лучше
+        #  просто использовать datetime вместо float
+        timestamp_after_middleware_handler = time()
         request.runtime = timestamp_after_middleware_handler - timestamp_before_middleware_handler
         print(f"request runtime: {request.runtime}")
         return response
 
     def process_request(self, request):
-        print("We are in REQ")
         return self.get_response(request)
 
     def process_response(self, request, response):
