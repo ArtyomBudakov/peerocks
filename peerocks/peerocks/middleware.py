@@ -1,5 +1,5 @@
 from django.utils.deprecation import MiddlewareMixin
-
+from datetime import datetime
 
 """
     Посмотреть какие Middleware используются в проекте. Описать их назначения
@@ -66,15 +66,21 @@ class MyMiddleware(MiddlewareMixin):
     request атрибут runtime содержащий время исполнения запроса
     """
 
-    # def __call__(self, request, *args, **kwargs):
-    #     return self.get_response(request)
+    def __call__(self, request, *args, **kwargs):
+        timestamp_before_middleware_handler = datetime.now()
+
+        response = self.process_request(request)
+        self.process_response(request, response)
+
+        timestamp_after_middleware_handler = datetime.now()
+        request.runtime = timestamp_after_middleware_handler - timestamp_before_middleware_handler
+        print(f"request runtime: {request.runtime}")
+        return response
 
     def process_request(self, request):
         print("We are in REQ")
-        # print(request.runtime)
         return self.get_response(request)
 
     def process_response(self, request, response):
-
         print("We are in RES")
-        return self.get_response(request)
+        return response
